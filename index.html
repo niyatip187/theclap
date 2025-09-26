@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Slap — reenactment</title>
+<style>
+  :root { --stage-w: 900px; --stage-h: 360px; }
+  body { font-family: system-ui, Arial; display:flex; min-height:100vh; align-items:center; justify-content:center; margin:0; background:#111; color:#fff; }
+  .wrap { text-align:center; }
+  #stage {
+    width:var(--stage-w);
+    height:var(--stage-h);
+    background: linear-gradient(#2a2a2a,#111);
+    border-radius:12px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    padding:20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    position:relative;
+    overflow:hidden;
+    user-select:none;
+    cursor:pointer;
+  }
+  .character {
+    width:240px;
+    height:320px;
+    background-size:contain;
+    background-repeat:no-repeat;
+    background-position:center bottom;
+    transition: transform 120ms ease;
+  }
+  .left { background-image: url('assets/left.png'); transform-origin: 70% 40%; }
+  .right { background-image: url('assets/right.png'); transform-origin: 30% 40%; }
+
+  /* animations */
+  .slap-start .left { animation: left-swipe 220ms ease forwards; }
+  .slap-start .right { animation: right-react 320ms ease forwards; }
+  @keyframes left-swipe {
+    0% { transform: translateX(0) rotate(0deg); }
+    60% { transform: translateX(120px) rotate(-18deg); }
+    100% { transform: translateX(85px) rotate(-8deg); }
+  }
+  @keyframes right-react {
+    0% { transform: translateX(0) rotate(0deg); filter: none; }
+    30% { transform: translateX(30px) rotate(6deg) scale(1.03); filter: brightness(1.15); }
+    100% { transform: translateX(10px) rotate(2deg) scale(1); filter: none; }
+  }
+
+  .impact {
+    position:absolute;
+    left:55%;
+    top:40%;
+    transform: translate(-50%,-50%) scale(0.2);
+    opacity:0;
+    font-weight:900;
+    letter-spacing:2px;
+    font-size:44px;
+    color: #fffa;
+    mix-blend-mode: screen;
+    transition: all 220ms ease;
+    pointer-events:none;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+  }
+  .slap-start .impact { opacity:1; transform: translate(-50%,-50%) scale(1); color:#fff0; animation: flash 300ms ease 0s 1; }
+  @keyframes flash {
+    0% { color:#fff0; transform: translate(-50%,-50%) scale(0.3); opacity:0.0; }
+    30% { color:#fff; opacity:1; transform: translate(-50%,-50%) scale(1.1); }
+    100% { color:#fffa; opacity:0; transform: translate(-50%,-50%) scale(1.6); }
+  }
+
+  .controls { margin-top: 16px; }
+  button { background:#1f6feb; color:white; border:none; padding:10px 16px; font-size:16px; border-radius:8px; cursor:pointer;}
+  button:active{ transform: translateY(1px); }
+  small.note { display:block; margin-top:8px; color:#ddd; opacity:0.8; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 style="margin:0 0 12px 0">Recreation — “The Slap” (demo)</h1>
+
+    <div id="stage" aria-label="Slap stage" title="Click to play the slap reenactment">
+      <div class="character left" id="leftChar" role="img" aria-hidden="true"></div>
+      <div class="character right" id="rightChar" role="img" aria-hidden="true"></div>
+      <div class="impact" id="impactText">*SLAP*</div>
+    </div>
+
+    <div class="controls">
+      <button id="playBtn">Play reenactment</button>
+      <small class="note">Replace <code>assets/*.png</code> and <code>assets/slap.mp3</code> with your own files. Click stage to trigger too.</small>
+    </div>
+  </div>
+<!--
+  <audio id="slapAudio" preload="auto">
+    <source src="assets/slap.mp3" type="audio/mpeg">
+    <source src="assets/slap.ogg" type="audio/ogg">
+  </audio>
+-->
+<script>
+  const stage = document.getElementById('stage');
+  const playBtn = document.getElementById('playBtn');
+  const audio = document.getElementById('slapAudio');
+  let animating = false;
+
+  function doSlap() {
+    if (animating) return;
+    animating = true;
+    document.body.classList.add('slap-start');
+    // try to play audio; if browser blocks autoplay, user made the click so should be OK
+    audio.currentTime = 0;
+    audio.play().catch(()=>{/* ignore play errors (handled by requiring a user action) */});
+    // cleanup after animation
+    setTimeout(()=> {
+      document.body.classList.remove('slap-start');
+      animating = false;
+    }, 800);
+  }
+
+  playBtn.addEventListener('click', (e) => { doSlap(); });
+  stage.addEventListener('click', (e) => { doSlap(); });
+
+  // Accessibility: allow Space/Enter to trigger when focus on playBtn
+  playBtn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); doSlap(); }
+  });
+</script>
+</body>
+</html>
